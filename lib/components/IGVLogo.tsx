@@ -2,8 +2,8 @@ export default function IGVLogo() {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="24px"
-      height="24px"
+      width="30px"
+      height="30px"
       viewBox="0 0 198 198"
       enableBackground="new 0 0 198 198"
     >
