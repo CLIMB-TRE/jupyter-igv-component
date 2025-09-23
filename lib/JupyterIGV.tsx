@@ -42,7 +42,7 @@ function App(props: JupyterIGVProps) {
   const [igvOptions] = useState<IGVOptions>(defaultOptions);
 
   return (
-    <div className="jupyter-igv h-100">
+    <div id="jupyter-igv-app" className="jupyter-igv h-100">
       <Header />
       <IGViewer igvOptions={igvOptions} />
     </div>
