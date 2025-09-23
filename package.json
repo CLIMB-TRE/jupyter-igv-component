@@ -1,0 +1,75 @@
+{
+  "name": "jupyter-igv-component",
+  "version": "0.1.0",
+  "description": "React component for IGV in JupyterLab",
+  "keywords": [
+    "gui",
+    "bioinformatics",
+    "igv"
+  ],
+  "homepage": "https://github.com/CLIMB-TRE/jupyter-igv-component",
+  "bugs": {
+    "url": "https://github.com/CLIMB-TRE/jupyter-igv-component/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Thomas Brier",
+    "email": "t.o.brier@bham.ac.uk"
+  },
+  "contributors": [
+    {
+      "name": "Thomas Brier",
+      "email": "t.o.brier@bham.ac.uk"
+    }
+  ],
+  "type": "module",
+  "main": "dist/jupyter-igv-component.js",
+  "types": "dist/main.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CLIMB-TRE/jupyter-igv-component.git"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --p ./tsconfig-build.json && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^4.36.1",
+    "bootstrap": "^5.3.7",
+    "http-status-codes": "^2.3.0",
+    "react-bootstrap": "^2.10.2",
+    "react-icons": "^5.3.0",
+    "react-select": "^5.8.0"
+  },
+  "peerDependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "@types/react": "^17.0.83",
+    "@types/react-dom": "^17.0.25",
+    "@types/react-plotly.js": "^2.6.3",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
+    "@vitejs/plugin-react-swc": "^3.5.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.6",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "sass-embedded": "^1.89.2",
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0",
+    "vite-plugin-dts": "^4.5.4"
+  }
+}
