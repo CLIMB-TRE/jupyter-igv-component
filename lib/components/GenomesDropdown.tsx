@@ -4,6 +4,7 @@ import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import { useReferenceGenomesQuery } from "../api";
+import { RequiredBadge, OptionalBadge } from "./Badges";
 import { useIGV } from "../context/IGVContext";
 import ContainerModal from "./ContainerModal";
 
@@ -36,8 +37,11 @@ function URLGenome() {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3" controlId="formReferenceURL">
-              <Form.Label>Reference URL [Required]</Form.Label>
+              <Form.Label>
+                Reference URL <RequiredBadge />
+              </Form.Label>
               <Form.Control
+                required
                 type="text"
                 placeholder="Enter reference URL..."
                 value={refURL}
@@ -48,7 +52,9 @@ function URLGenome() {
               </Form.Text>
             </Form.Group>
             <Form.Group className="mb-3" controlId="formIndexURL">
-              <Form.Label>Index URL [Optional]</Form.Label>
+              <Form.Label>
+                Index URL <OptionalBadge />
+              </Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Enter index URL..."
@@ -62,8 +68,13 @@ function URLGenome() {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={handleClose}>Close</Button>
-          <Button onClick={() => handleLoadGenome() && handleClose()}>
+          <Button variant="dark" onClick={handleClose}>
+            Close
+          </Button>
+          <Button
+            variant="dark"
+            onClick={() => handleLoadGenome() && handleClose()}
+          >
             Add Genome
           </Button>
         </Modal.Footer>
