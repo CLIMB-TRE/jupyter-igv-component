@@ -18,5 +18,3 @@ export function ContainerModal({ children, ...props }: ContainerModalProps) {
     </Modal>
   );
 }
-
-export default ContainerModal;
