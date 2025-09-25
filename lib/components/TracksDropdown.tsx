@@ -1,11 +1,11 @@
 import { useState } from "react";
 import Modal from "react-bootstrap/Modal";
-import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import { useIGV } from "../context/IGVContext";
-import ContainerModal from "./ContainerModal";
+import { ContainerModal } from "./base/Modals";
 import NavDropdown from "react-bootstrap/NavDropdown";
-import { RequiredBadge, OptionalBadge } from "./Badges";
+import { RequiredBadge, OptionalBadge } from "./base/Badges";
+import { DarkButton } from "./base/Buttons";
 import { TrackLoad, TrackType } from "igv";
 
 function Track() {
@@ -27,7 +27,7 @@ function Track() {
     <>
       <NavDropdown.Item onClick={handleShow}>URL...</NavDropdown.Item>
       <ContainerModal show={show} onHide={handleClose}>
-        <Modal.Header closeButton>
+        <Modal.Header>
           <Modal.Title>Add Track</Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -79,15 +79,10 @@ function Track() {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="dark" onClick={handleClose}>
-            Close
-          </Button>
-          <Button
-            variant="dark"
-            onClick={() => handleLoadTrack() && handleClose()}
-          >
+          <DarkButton onClick={handleClose}>Close</DarkButton>
+          <DarkButton onClick={() => handleLoadTrack() && handleClose()}>
             Add Track
-          </Button>
+          </DarkButton>
         </Modal.Footer>
       </ContainerModal>
     </>

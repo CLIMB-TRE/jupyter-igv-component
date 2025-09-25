@@ -1,12 +1,12 @@
 import { useState } from "react";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import Modal from "react-bootstrap/Modal";
-import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
-import { useReferenceGenomesQuery } from "../api";
-import { RequiredBadge, OptionalBadge } from "./Badges";
+import { useIGVReferenceGenomesQuery } from "../api";
+import { RequiredBadge, OptionalBadge } from "./base/Badges";
+import { DarkButton } from "./base/Buttons";
 import { useIGV } from "../context/IGVContext";
-import ContainerModal from "./ContainerModal";
+import { ContainerModal } from "./base/Modals";
 
 enum ReferenceGenomesMessages {
   LOADING = "Loading reference genomes...",
@@ -31,7 +31,7 @@ function URLGenome() {
     <>
       <NavDropdown.Item onClick={handleShow}>URL...</NavDropdown.Item>
       <ContainerModal show={show} onHide={handleClose}>
-        <Modal.Header closeButton>
+        <Modal.Header>
           <Modal.Title>Add Genome by URL</Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -68,15 +68,10 @@ function URLGenome() {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="dark" onClick={handleClose}>
-            Close
-          </Button>
-          <Button
-            variant="dark"
-            onClick={() => handleLoadGenome() && handleClose()}
-          >
+          <DarkButton onClick={handleClose}>Close</DarkButton>
+          <DarkButton onClick={() => handleLoadGenome() && handleClose()}>
             Add Genome
-          </Button>
+          </DarkButton>
         </Modal.Footer>
       </ContainerModal>
     </>
@@ -85,7 +80,7 @@ function URLGenome() {
 
 function ReferenceGenomes() {
   const { getBrowser } = useIGV();
-  const { data, error, isLoading } = useReferenceGenomesQuery();
+  const { data, error, isLoading } = useIGVReferenceGenomesQuery();
 
   return (
     <>
@@ -109,9 +104,9 @@ function ReferenceGenomes() {
   );
 }
 
-export default function GenomesDropdown() {
+export default function ReferenceDropdown() {
   return (
-    <NavDropdown title="Genome" id="genomes-dropdown">
+    <NavDropdown title="Reference" id="reference-dropdown">
       <div style={{ maxHeight: "50vh", overflowY: "auto" }}>
         <NavDropdown.Header>Add a Custom Reference</NavDropdown.Header>
         <URLGenome />
