@@ -9,15 +9,16 @@ import { DarkButton } from "./base/Buttons";
 import { TrackLoad, TrackType } from "igv";
 
 function Track() {
-  const { getBrowser } = useIGV();
+  const igvContext = useIGV();
   const [name, setName] = useState("");
   const [url, setURL] = useState("");
   const [indexURL, setIndexURL] = useState("");
   const [show, setShow] = useState(false);
+
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const handleLoadTrack = () =>
-    getBrowser()?.loadTrack({
+    igvContext.getBrowser()?.loadTrack({
       name: name,
       url: url,
       ...(indexURL && { indexURL }),

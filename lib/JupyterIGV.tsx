@@ -11,20 +11,20 @@ import "./JupyterIGV.scss";
 import "./JupyterIGV.css";
 
 function IGViewer({ igvOptions }: { igvOptions: IGVOptions }) {
+  const igvContext = useIGV();
   const containerRef = useRef<HTMLDivElement>(null);
-  const { setBrowser, getBrowser } = useIGV();
 
   useEffect(() => {
     // If IGV browser already exists, do nothing
-    if (getBrowser()) return;
+    if (igvContext.getBrowser()) return;
 
     // Create the browser
     igv
       .createBrowser(containerRef.current!, igvOptions as unknown as CreateOpt)
       .then((browser) => {
-        setBrowser(browser);
+        igvContext.setBrowser(browser);
       });
-  }, [setBrowser, getBrowser, igvOptions]);
+  }, [igvContext, igvOptions]);
 
   return <div ref={containerRef} />;
 }
@@ -37,8 +37,6 @@ function App(props: JupyterIGVProps) {
     ...baseOptions,
     genome: "hg38",
   };
-
-  // IGV options state
   const [igvOptions] = useState<IGVOptions>(defaultOptions);
 
   return (

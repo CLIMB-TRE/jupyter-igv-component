@@ -15,14 +15,15 @@ enum ReferenceGenomesMessages {
 }
 
 function URLGenome() {
-  const { getBrowser } = useIGV();
+  const igvContext = useIGV();
   const [refURL, setRefURL] = useState("");
   const [indexURL, setIndexURL] = useState("");
   const [show, setShow] = useState(false);
+
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const handleLoadGenome = () =>
-    getBrowser()?.loadGenome({
+    igvContext.getBrowser()?.loadGenome({
       fastaURL: refURL,
       ...(indexURL && { indexURL }),
     });
@@ -32,7 +33,7 @@ function URLGenome() {
       <NavDropdown.Item onClick={handleShow}>URL...</NavDropdown.Item>
       <ContainerModal show={show} onHide={handleClose}>
         <Modal.Header>
-          <Modal.Title>Add Genome by URL</Modal.Title>
+          <Modal.Title>Add Reference by URL</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
@@ -79,7 +80,7 @@ function URLGenome() {
 }
 
 function ReferenceGenomes() {
-  const { getBrowser } = useIGV();
+  const igvContext = useIGV();
   const { data, error, isLoading } = useIGVReferenceGenomesQuery();
 
   return (
@@ -92,7 +93,7 @@ function ReferenceGenomes() {
         data.map((genome) => (
           <NavDropdown.Item
             key={genome.id}
-            onClick={() => getBrowser()?.loadGenome(genome.id!)}
+            onClick={() => igvContext.getBrowser()?.loadGenome(genome.id!)}
           >
             {genome.name}
           </NavDropdown.Item>
