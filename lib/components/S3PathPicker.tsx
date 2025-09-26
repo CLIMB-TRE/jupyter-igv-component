@@ -3,14 +3,14 @@ import { SingleValue } from "react-select";
 import AsyncSelect from "react-select/async";
 
 const DUMMY_S3 = [
-  "my-bucket",
+  "my-bucket/",
   "my-bucket/folder1",
   "my-bucket/folder1/file1.txt",
   "my-bucket/folder1/file2.csv",
   "my-bucket/folder2",
   "my-bucket/folder2/subfolder1",
   "my-bucket/folder2/subfolder1/data.json",
-  "another-bucket",
+  "another-bucket/",
   "another-bucket/photos",
   "another-bucket/photos/cat.jpg",
   "another-bucket/photos/dog.png",
@@ -29,11 +29,9 @@ async function fetchS3Paths(path: string): Promise<string[]> {
         .split("/")
         .slice(0, parentDir.length + 1)
         .join("/")
+        .concat(match.split("/").length > parentDir.length + 1 ? "/" : "")
     );
   }
-
-  // Remove exact match if multiple options still exist
-  if (paths.size !== 1) paths.delete(path);
 
   return [...paths];
 }
@@ -58,13 +56,10 @@ export default function S3PathPicker({
   }
 
   function handleChange(option: SingleValue<{ value: string; label: string }>) {
-    let v;
-    if (!option) v = "";
-    else v = option.value;
-
-    setPath(v);
-    onChange(v);
-    setMenuOpen(true);
+    setPath(option?.value || "");
+    onChange(option?.value || "");
+    if (option?.value.endsWith("/")) setMenuOpen(true);
+    else setMenuOpen(false);
   }
 
   return (
