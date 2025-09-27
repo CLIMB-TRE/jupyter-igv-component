@@ -5,12 +5,17 @@ import { IGVOptions } from "./types";
 import Header from "./components/Header";
 import IGVProvider from "./context/IGVProvider";
 import { useIGV } from "./context/IGVContext";
+import { HandlersContext } from "./context/HandlersContext";
 import igv, { CreateOpt } from "igv";
 
 import "./JupyterIGV.scss";
 import "./JupyterIGV.css";
 
-function IGViewer({ igvOptions }: { igvOptions: IGVOptions }) {
+interface IGViewerProps {
+  igvOptions: IGVOptions;
+}
+
+function IGViewer(props: IGViewerProps) {
   const igvContext = useIGV();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -20,18 +25,19 @@ function IGViewer({ igvOptions }: { igvOptions: IGVOptions }) {
 
     // Create the browser
     igv
-      .createBrowser(containerRef.current!, igvOptions as unknown as CreateOpt)
+      .createBrowser(
+        containerRef.current!,
+        props.igvOptions as unknown as CreateOpt
+      )
       .then((browser) => {
         igvContext.setBrowser(browser);
       });
-  }, [igvContext, igvOptions]);
+  }, [igvContext, props.igvOptions]);
 
   return <div ref={containerRef} />;
 }
 
-function App(props: JupyterIGVProps) {
-  props;
-
+function App() {
   const baseOptions: IGVOptions = {};
   const defaultOptions: IGVOptions = {
     ...baseOptions,
@@ -59,9 +65,11 @@ const queryClient = new QueryClient({
 function JupyterIGV(props: JupyterIGVProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <IGVProvider>
-        <App {...props} />
-      </IGVProvider>
+      <HandlersContext.Provider value={{ ...props }}>
+        <IGVProvider>
+          <App />
+        </IGVProvider>
+      </HandlersContext.Provider>
     </QueryClientProvider>
   );
 }
