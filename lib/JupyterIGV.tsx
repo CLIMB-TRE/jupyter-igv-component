@@ -9,7 +9,6 @@ import { HandlersContext } from "./context/HandlersContext";
 import igv, { CreateOpt } from "igv";
 
 import "./JupyterIGV.scss";
-import "./JupyterIGV.css";
 
 interface IGViewerProps {
   igvOptions: IGVOptions;
@@ -46,7 +45,7 @@ function App() {
   const [igvOptions] = useState<IGVOptions>(defaultOptions);
 
   return (
-    <div id="jupyter-igv-app" className="jupyter-igv h-100">
+    <div id="jupyter-igv-app" className="climb-jupyter jupyter-igv h-100">
       <Header />
       <IGViewer igvOptions={igvOptions} />
     </div>

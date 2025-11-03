@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import JupyterIGV from "../lib/JupyterIGV.tsx";
 import { version, getItem, setItem, setTitle, getS3Paths } from "./handlers.ts";
 
+import "climb-jupyter-base-component/dist/style.css";
 import "./main.css";
 
 ReactDOM.render(
