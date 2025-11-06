@@ -47,7 +47,9 @@ function App() {
   return (
     <div id="jupyter-igv-app" className="climb-jupyter jupyter-igv h-100">
       <Header />
-      <IGViewer igvOptions={igvOptions} />
+      <div className="jupyter-igv-content">
+        <IGViewer igvOptions={igvOptions} />
+      </div>
     </div>
   );
 }

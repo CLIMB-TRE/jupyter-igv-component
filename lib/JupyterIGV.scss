@@ -1,6 +1,5 @@
 [data-bs-theme=light] {
   .jupyter-igv {
-    --jupyter-igv-body-bg: var(--bs-gray-100);
     --jupyter-igv-dropdown-control-border-color: var(--bs-gray-300);
     --jupyter-igv-dropdown-control-background-color: var(--bs-white);
     --jupyter-igv-dropdown-menu-background-color: var(--bs-white);
@@ -26,18 +25,12 @@
       --bs-btn-disabled-bg: var(--bs-gray-300);
       --bs-btn-disabled-border-color: var(--bs-gray-300);
     }
-
-    .jupyter-igv-border {
-      --bs-border-opacity: 1;
-      border-color: var(--bs-white) !important;
-    }
   }
 }
 
 [data-bs-theme=dark] {
   .jupyter-igv {
     --bs-body-bg: #121212 !important;
-    --jupyter-igv-body-bg: var(--bs-body-bg);
     --jupyter-igv-dropdown-control-border-color: var(--bs-gray-800);
     --jupyter-igv-dropdown-control-background-color: var(--bs-body-bg);
     --jupyter-igv-dropdown-menu-background-color: var(--bs-body-bg);
@@ -53,11 +46,6 @@
       --bs-btn-disabled-bg: var(--bs-gray-900);
       --bs-btn-disabled-border-color: var(--bs-gray-900);
     }
-
-    .jupyter-igv-border {
-      --bs-border-opacity: 1;
-      border-color: var(--bs-border-color-translucent) !important;
-    }
   }
 }
 
@@ -70,28 +58,11 @@
     text-decoration: underline !important;
   }
 
-  .ag-theme-quartz {
-    --ag-background-color: var(--bs-body-bg);
-    --ag-foreground-color: var(--bs-body-color);
-  }
-
-  .jupyter-igv-text-pink {
-    color: var(--bs-pink);
-  }
-
   .jupyter-igv-content {
     flex: 1 1 auto;
     overflow-x: auto;
     overflow-y: auto;
     min-height: 0;
-  }
-
-  .resizer {
-    cursor: col-resize;
-    height: 100%;
-    width: 10px;
-    position: absolute;
-    top: 0;
-    right: -10px;
+    background: var(--bs-white)
   }
 }
