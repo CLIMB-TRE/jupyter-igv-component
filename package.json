@@ -1,6 +1,6 @@
 {
   "name": "jupyter-igv-component",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "React component for IGV in JupyterLab",
   "keywords": [
     "gui",
