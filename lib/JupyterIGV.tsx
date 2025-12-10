@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { JupyterIGVProps } from "./interfaces";
-import { IGVOptions } from "./types";
 import Header from "./components/Header";
 import IGVProvider from "./context/IGVProvider";
 import { useIGV } from "./context/IGVContext";
@@ -11,7 +10,7 @@ import igv, { CreateOpt } from "igv";
 import "./JupyterIGV.scss";
 
 interface IGViewerProps {
-  igvOptions: IGVOptions;
+  igvOptions: CreateOpt;
 }
 
 function IGViewer(props: IGViewerProps) {
@@ -19,30 +18,28 @@ function IGViewer(props: IGViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // If IGV browser already exists, do nothing
-    if (igvContext.getBrowser()) return;
-
-    // Create the browser
+    // Create the browser on mount
     igv
-      .createBrowser(
-        containerRef.current!,
-        props.igvOptions as unknown as CreateOpt
-      )
-      .then((browser) => {
-        igvContext.setBrowser(browser);
-      });
-  }, [igvContext, props.igvOptions]);
+      .createBrowser(containerRef.current!, props.igvOptions)
+      .then((browser) => igvContext.setBrowser(browser));
+
+    // Handler function to destroy the browser on unmount
+    return () => {
+      const browser = igvContext.getBrowser();
+      if (browser) igv.removeBrowser(browser);
+    };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return <div ref={containerRef} />;
 }
 
 function App() {
-  const baseOptions: IGVOptions = {};
-  const defaultOptions: IGVOptions = {
-    ...baseOptions,
+  const defaultOptions: CreateOpt = {
     genome: "hg38",
   };
-  const [igvOptions] = useState<IGVOptions>(defaultOptions);
+  const [igvOptions] = useState<CreateOpt>(defaultOptions);
 
   return (
     <div id="jupyter-igv-app" className="climb-jupyter jupyter-igv h-100">
