@@ -11,6 +11,7 @@ import { DarkButton } from "./base/Buttons";
 import { ContainerModal } from "./base/Modals";
 import { useIGV } from "../context/IGVContext";
 import { useHandlers } from "../context/HandlersContext";
+import { s3URI } from "../utils/validators";
 
 enum IGVReferencesMessage {
   LOADING = "Loading reference genomes...",
@@ -18,24 +19,17 @@ enum IGVReferencesMessage {
   EMPTY = "No reference genomes available.",
 }
 
-type CustomReferenceForm = {
+type ReferenceForm = {
   referenceURI: string;
   indexURI?: string;
 };
 
-const S3_URI_REGEX = /^s3:\/\/([a-z0-9.-]{1,})\/.*$/;
-const S3_URI_MESSAGE =
-  "Must be a valid S3 URI starting with 's3://' and including a bucket/key.";
-const s3URI = z.string().regex(S3_URI_REGEX, {
-  message: S3_URI_MESSAGE,
-});
-
-const CustomReferenceSchema = z.object({
+const ReferenceSchema = z.object({
   referenceURI: s3URI,
   indexURI: z.union([s3URI, z.literal("")]).optional(),
 });
 
-function CustomReference() {
+function Reference() {
   const igvContext = useIGV();
   const handlers = useHandlers();
   const [show, setShow] = useState(false);
@@ -47,17 +41,17 @@ function CustomReference() {
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(CustomReferenceSchema),
+    resolver: zodResolver(ReferenceSchema),
   });
 
-  const onSubmit: SubmitHandler<CustomReferenceForm> = async (data) => {
+  const onSubmit: SubmitHandler<ReferenceForm> = async (data) => {
     const [presignedFastaURL, presignedIndexURL] = await Promise.all([
       handlers.s3PresignHandler(data.referenceURI),
       data.indexURI
         ? handlers.s3PresignHandler(data.indexURI)
         : Promise.resolve(undefined),
     ]);
-    await igvContext.getBrowser()?.loadGenome({
+    igvContext.getBrowser()?.loadGenome({
       fastaURL: presignedFastaURL,
       indexURL: presignedIndexURL,
     });
@@ -70,7 +64,7 @@ function CustomReference() {
       <ContainerModal show={show} onHide={handleClose}>
         <Form onSubmit={handleSubmit(onSubmit)}>
           <Modal.Header>
-            <Modal.Title>Add Reference by S3 URI</Modal.Title>
+            <Modal.Title>Add Reference</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Form.Group className="mb-3">
@@ -148,10 +142,10 @@ export default function ReferenceDropdown() {
   return (
     <NavDropdown title="Reference" id="reference-dropdown">
       <div style={{ maxHeight: "50vh", overflowY: "auto" }}>
-        <NavDropdown.Header>Add a Custom Reference</NavDropdown.Header>
-        <CustomReference />
+        <NavDropdown.Header>Add a Reference</NavDropdown.Header>
+        <Reference />
         <NavDropdown.Divider />
-        <NavDropdown.Header>Available References</NavDropdown.Header>
+        <NavDropdown.Header>IGV References</NavDropdown.Header>
         <IGVReferences />
       </div>
     </NavDropdown>
