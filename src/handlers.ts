@@ -25,35 +25,15 @@ export function setTitle(title: string) {
   document.title = title;
 }
 
-export async function getS3Paths(path: string): Promise<string[]> {
-  const S3 = [
-    "my-bucket/folder1",
-    "my-bucket/folder1/file1.txt",
-    "my-bucket/folder1/file2.csv",
-    "my-bucket/folder2",
-    "my-bucket/folder2/subfolder1",
-    "my-bucket/folder2/subfolder1/data.json",
-    "another-bucket/photos",
-    "another-bucket/photos/cat.jpg",
-    "another-bucket/photos/dog.png",
-  ];
+export async function s3PresignHandler(uri: string): Promise<string> {
+  // Examples references
+  // https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa
+  // https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa.fai
+  // Example tracks
+  // https://s3.amazonaws.com/igv.org.genomes/hg38/refGene.txt.gz
 
   // Simulate network delay
+  console.log(`Presigning ${uri}`);
   await new Promise((resolve) => setTimeout(resolve, 200));
-
-  const matches = S3.filter((p) => p.startsWith(path));
-  const paths = new Set<string>();
-  const parentDir = path.split("/").filter((p) => !!p);
-
-  for (const match of matches) {
-    paths.add(
-      match
-        .split("/")
-        .slice(0, parentDir.length + 1)
-        .join("/")
-        .concat(match.split("/").length > parentDir.length + 1 ? "/" : "")
-    );
-  }
-
-  return [...paths];
+  return `https://s3.amazonaws.com/${uri.slice(5)}`;
 }
