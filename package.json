@@ -43,11 +43,15 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@tanstack/react-query": "^4.36.1",
     "igv": "^3.5.0",
     "react-bootstrap": "^2.10.2",
+    "react-hook-form": "^7.68.0",
     "react-icons": "^5.3.0",
-    "react-select": "^5.8.0"
+    "react-select": "^5.8.0",
+    "sass": "^1.95.1",
+    "zod": "^4.1.13"
   },
   "peerDependencies": {
     "climb-jupyter-base-component": "^0.2.1",
@@ -55,13 +59,13 @@
     "react-dom": "^17.0.2"
   },
   "devDependencies": {
-    "climb-jupyter-base-component": "^0.2.1",
     "@types/node": "^20.12.12",
     "@types/react": "^17.0.83",
     "@types/react-dom": "^17.0.25",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
     "@typescript-eslint/parser": "^7.2.0",
     "@vitejs/plugin-react-swc": "^3.5.0",
+    "climb-jupyter-base-component": "^0.2.1",
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",

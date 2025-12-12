@@ -2,93 +2,132 @@ import { useState } from "react";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
-import { useIGVReferenceGenomesQuery } from "../api";
+import { useForm, SubmitHandler } from "react-hook-form";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useIGVReferencesQuery } from "../api";
 import { RequiredBadge, OptionalBadge } from "./base/Badges";
 import { DarkButton } from "./base/Buttons";
-import { useIGV } from "../context/IGVContext";
 import { ContainerModal } from "./base/Modals";
+import { useIGV } from "../context/IGVContext";
+import { useHandlers } from "../context/HandlersContext";
 
-enum ReferenceGenomesMessages {
+enum IGVReferencesMessage {
   LOADING = "Loading reference genomes...",
   ERROR = "Error loading reference genomes.",
   EMPTY = "No reference genomes available.",
 }
 
-function URLGenome() {
-  const igvContext = useIGV();
-  const [refURL, setRefURL] = useState("");
-  const [indexURL, setIndexURL] = useState("");
-  const [show, setShow] = useState(false);
+type CustomReferenceForm = {
+  referenceURI: string;
+  indexURI?: string;
+};
 
+const S3_URI_REGEX = /^s3:\/\/([a-z0-9.-]{1,})\/.*$/;
+const S3_URI_MESSAGE =
+  "Must be a valid S3 URI starting with 's3://' and including a bucket/key.";
+const s3URI = z.string().regex(S3_URI_REGEX, {
+  message: S3_URI_MESSAGE,
+});
+
+const CustomReferenceSchema = z.object({
+  referenceURI: s3URI,
+  indexURI: z.union([s3URI, z.literal("")]).optional(),
+});
+
+function CustomReference() {
+  const igvContext = useIGV();
+  const handlers = useHandlers();
+  const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  const handleLoadGenome = () =>
-    igvContext.getBrowser()?.loadGenome({
-      fastaURL: refURL,
-      ...(indexURL && { indexURL }),
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(CustomReferenceSchema),
+  });
+
+  const onSubmit: SubmitHandler<CustomReferenceForm> = async (data) => {
+    const [presignedFastaURL, presignedIndexURL] = await Promise.all([
+      handlers.s3PresignHandler(data.referenceURI),
+      data.indexURI
+        ? handlers.s3PresignHandler(data.indexURI)
+        : Promise.resolve(undefined),
+    ]);
+    await igvContext.getBrowser()?.loadGenome({
+      fastaURL: presignedFastaURL,
+      indexURL: presignedIndexURL,
     });
+    handleClose();
+  };
 
   return (
     <>
-      <NavDropdown.Item onClick={handleShow}>URL...</NavDropdown.Item>
+      <NavDropdown.Item onClick={handleShow}>S3 URI...</NavDropdown.Item>
       <ContainerModal show={show} onHide={handleClose}>
-        <Modal.Header>
-          <Modal.Title>Add Reference by URL</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3" controlId="formReferenceURL">
+        <Form onSubmit={handleSubmit(onSubmit)}>
+          <Modal.Header>
+            <Modal.Title>Add Reference by S3 URI</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form.Group className="mb-3">
               <Form.Label>
-                Reference URL <RequiredBadge />
-              </Form.Label>
-              <Form.Control
-                required
-                type="text"
-                placeholder="Enter reference URL..."
-                value={refURL}
-                onChange={(e) => setRefURL(e.target.value)}
-              />
-              <Form.Text className="text-muted">
-                URL to a reference file (.fa, .fasta).
-              </Form.Text>
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="formIndexURL">
-              <Form.Label>
-                Index URL <OptionalBadge />
+                Reference S3 URI <RequiredBadge />
               </Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter index URL..."
-                value={indexURL}
-                onChange={(e) => setIndexURL(e.target.value)}
+                placeholder="Enter reference URI..."
+                isInvalid={!!errors.referenceURI}
+                {...register("referenceURI")}
               />
               <Form.Text className="text-muted">
-                URL to an index file (.fai).
+                S3 URI to a reference file (.fa, .fasta).
               </Form.Text>
+              <div className="small text-danger">
+                {errors.referenceURI?.message}
+              </div>
             </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <DarkButton onClick={handleClose}>Close</DarkButton>
-          <DarkButton onClick={() => handleLoadGenome() && handleClose()}>
-            Add Genome
-          </DarkButton>
-        </Modal.Footer>
+            <Form.Group className="mb-3">
+              <Form.Label>
+                Index S3 URI <OptionalBadge />
+              </Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter index URI..."
+                isInvalid={!!errors.indexURI}
+                {...register("indexURI")}
+              />
+              <Form.Text className="text-muted">
+                S3 URI to an index file (.fai).
+              </Form.Text>
+              <div className="small text-danger">
+                {errors.indexURI?.message}
+              </div>
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <DarkButton onClick={handleClose}>Close</DarkButton>
+            <DarkButton type="submit">Add Reference</DarkButton>
+          </Modal.Footer>
+        </Form>
       </ContainerModal>
     </>
   );
 }
 
-function ReferenceGenomes() {
+function IGVReferences() {
   const igvContext = useIGV();
-  const { data, error, isLoading } = useIGVReferenceGenomesQuery();
+  const { data, error, isLoading } = useIGVReferencesQuery();
 
   return (
     <>
       {isLoading ? (
-        <NavDropdown.Item>{ReferenceGenomesMessages.LOADING}</NavDropdown.Item>
+        <NavDropdown.Item>{IGVReferencesMessage.LOADING}</NavDropdown.Item>
       ) : error ? (
-        <NavDropdown.Item>{ReferenceGenomesMessages.ERROR}</NavDropdown.Item>
+        <NavDropdown.Item>{IGVReferencesMessage.ERROR}</NavDropdown.Item>
       ) : data ? (
         data.map((genome) => (
           <NavDropdown.Item
@@ -99,7 +138,7 @@ function ReferenceGenomes() {
           </NavDropdown.Item>
         ))
       ) : (
-        <NavDropdown.Item>{ReferenceGenomesMessages.EMPTY}</NavDropdown.Item>
+        <NavDropdown.Item>{IGVReferencesMessage.EMPTY}</NavDropdown.Item>
       )}
     </>
   );
@@ -110,10 +149,10 @@ export default function ReferenceDropdown() {
     <NavDropdown title="Reference" id="reference-dropdown">
       <div style={{ maxHeight: "50vh", overflowY: "auto" }}>
         <NavDropdown.Header>Add a Custom Reference</NavDropdown.Header>
-        <URLGenome />
+        <CustomReference />
         <NavDropdown.Divider />
         <NavDropdown.Header>Available References</NavDropdown.Header>
-        <ReferenceGenomes />
+        <IGVReferences />
       </div>
     </NavDropdown>
   );
