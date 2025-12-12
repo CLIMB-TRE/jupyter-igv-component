@@ -3,14 +3,11 @@ import { ReferenceGenome } from "igv";
 import Endpoints from "./endpoints";
 
 /** Fetch IGV reference genomes */
-const useIGVReferenceGenomesQuery = (): UseQueryResult<
-  ReferenceGenome[],
-  Error
-> => {
+const useIGVReferencesQuery = (): UseQueryResult<ReferenceGenome[], Error> => {
   return useQuery({
-    queryKey: ["igv-reference-genomes"],
+    queryKey: ["igv-references"],
     queryFn: async () => {
-      return fetch(Endpoints.IGV_REFERENCE_GENOMES).then((response) =>
+      return fetch(Endpoints.IGV_REFERENCES).then((response) =>
         response.json()
       );
     },
@@ -18,4 +15,4 @@ const useIGVReferenceGenomesQuery = (): UseQueryResult<
   });
 };
 
-export { useIGVReferenceGenomesQuery };
+export { useIGVReferencesQuery };
