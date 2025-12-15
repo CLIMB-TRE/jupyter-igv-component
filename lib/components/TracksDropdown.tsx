@@ -34,6 +34,10 @@ function Track() {
   const handleShow = () => setShow(true);
   const [error, setError] = useState<Error | null>(null);
   const [showError, setShowError] = useState(false);
+  const handleError = (e: Error) => {
+    setError(e);
+    setShowError(true);
+  };
 
   const {
     register,
@@ -51,16 +55,16 @@ function Track() {
         : Promise.resolve(undefined),
     ])
       .then(([presignedTrackURL, presignedIndexURL]) => {
-        igvContext.getBrowser()?.loadTrack({
-          name: data.name,
-          url: presignedTrackURL,
-          indexURL: presignedIndexURL,
-        } as TrackLoad<TrackType>);
+        igvContext
+          .getBrowser()
+          ?.loadTrack({
+            name: data.name,
+            url: presignedTrackURL,
+            indexURL: presignedIndexURL,
+          } as TrackLoad<TrackType>)
+          .catch(handleError);
       })
-      .catch((e) => {
-        setError(e);
-        setShowError(true);
-      });
+      .catch(handleError);
     handleClose();
   };
 

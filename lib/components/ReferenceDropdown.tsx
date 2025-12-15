@@ -38,6 +38,10 @@ function Reference() {
   const handleShow = () => setShow(true);
   const [error, setError] = useState<Error | null>(null);
   const [showError, setShowError] = useState(false);
+  const handleError = (e: Error) => {
+    setError(e);
+    setShowError(true);
+  };
 
   const {
     register,
@@ -55,15 +59,15 @@ function Reference() {
         : Promise.resolve(undefined),
     ])
       .then(([presignedFastaURL, presignedIndexURL]) => {
-        igvContext.getBrowser()?.loadGenome({
-          fastaURL: presignedFastaURL,
-          indexURL: presignedIndexURL,
-        });
+        igvContext
+          .getBrowser()
+          ?.loadGenome({
+            fastaURL: presignedFastaURL,
+            indexURL: presignedIndexURL,
+          })
+          .catch(handleError);
       })
-      .catch((e) => {
-        setError(e);
-        setShowError(true);
-      });
+      .catch(handleError);
     handleClose();
   };
 
