@@ -12,6 +12,7 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { s3URI } from "../utils/validators";
+import ErrorModal from "./ErrorModal";
 
 type TrackForm = {
   name: string;
@@ -31,6 +32,8 @@ function Track() {
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [showError, setShowError] = useState(false);
 
   const {
     register,
@@ -41,23 +44,35 @@ function Track() {
   });
 
   const onSubmit: SubmitHandler<TrackForm> = async (data) => {
-    const [presignedTrackURL, presignedIndexURL] = await Promise.all([
+    await Promise.all([
       handlers.s3PresignHandler(data.trackURI),
       data.indexURI
         ? handlers.s3PresignHandler(data.indexURI)
         : Promise.resolve(undefined),
-    ]);
-    igvContext.getBrowser()?.loadTrack({
-      name: data.name,
-      url: presignedTrackURL,
-      indexURL: presignedIndexURL,
-    } as TrackLoad<TrackType>);
+    ])
+      .then(([presignedTrackURL, presignedIndexURL]) => {
+        igvContext.getBrowser()?.loadTrack({
+          name: data.name,
+          url: presignedTrackURL,
+          indexURL: presignedIndexURL,
+        } as TrackLoad<TrackType>);
+      })
+      .catch((e) => {
+        setError(e);
+        setShowError(true);
+      });
     handleClose();
   };
 
   return (
     <>
       <NavDropdown.Item onClick={handleShow}>S3 URI...</NavDropdown.Item>
+      <ErrorModal
+        title="Track Error"
+        error={error}
+        show={showError}
+        onHide={() => setShowError(false)}
+      />
       <ContainerModal show={show} onHide={handleClose}>
         <Form onSubmit={handleSubmit(onSubmit)}>
           <Modal.Header>
