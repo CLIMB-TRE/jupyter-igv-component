@@ -26,14 +26,22 @@ export function setTitle(title: string) {
 }
 
 export async function s3PresignHandler(uri: string): Promise<string> {
-  // Examples references
-  // https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa
-  // https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa.fai
-  // Example tracks
-  // https://s3.amazonaws.com/igv.org.genomes/hg38/refGene.txt.gz
+  // Test references and annotations
+  const URLS = [
+    "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa",
+    "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa.fai",
+    "https://s3.amazonaws.com/igv.org.genomes/hg38/refGene.txt.gz",
+  ];
 
   // Simulate network delay
   console.log(`Presigning ${uri}`);
   await new Promise((resolve) => setTimeout(resolve, 200));
-  return `https://s3.amazonaws.com/${uri.slice(5)}`;
+  const url = `https://s3.amazonaws.com/${uri.slice(5)}`;
+
+  // Validate URL
+  if (!URLS.includes(url)) {
+    throw new Error(`Error occurred: ${url}`);
+  }
+
+  return url;
 }

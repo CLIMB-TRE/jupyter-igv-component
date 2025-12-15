@@ -9,6 +9,7 @@ import { useIGVReferencesQuery } from "../api";
 import { RequiredBadge, OptionalBadge } from "./base/Badges";
 import { DarkButton } from "./base/Buttons";
 import { ContainerModal } from "./base/Modals";
+import ErrorModal from "./ErrorModal";
 import { useIGV } from "../context/IGVContext";
 import { useHandlers } from "../context/HandlersContext";
 import { s3URI } from "../utils/validators";
@@ -35,6 +36,12 @@ function Reference() {
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [showError, setShowError] = useState(false);
+  const handleError = (e: Error) => {
+    setError(e);
+    setShowError(true);
+  };
 
   const {
     register,
@@ -45,22 +52,34 @@ function Reference() {
   });
 
   const onSubmit: SubmitHandler<ReferenceForm> = async (data) => {
-    const [presignedFastaURL, presignedIndexURL] = await Promise.all([
+    await Promise.all([
       handlers.s3PresignHandler(data.referenceURI),
       data.indexURI
         ? handlers.s3PresignHandler(data.indexURI)
         : Promise.resolve(undefined),
-    ]);
-    igvContext.getBrowser()?.loadGenome({
-      fastaURL: presignedFastaURL,
-      indexURL: presignedIndexURL,
-    });
+    ])
+      .then(([presignedFastaURL, presignedIndexURL]) => {
+        igvContext
+          .getBrowser()
+          ?.loadGenome({
+            fastaURL: presignedFastaURL,
+            indexURL: presignedIndexURL,
+          })
+          .catch(handleError);
+      })
+      .catch(handleError);
     handleClose();
   };
 
   return (
     <>
       <NavDropdown.Item onClick={handleShow}>S3 URI...</NavDropdown.Item>
+      <ErrorModal
+        title="Reference Error"
+        error={error}
+        show={showError}
+        onHide={() => setShowError(false)}
+      />
       <ContainerModal show={show} onHide={handleClose}>
         <Form onSubmit={handleSubmit(onSubmit)}>
           <Modal.Header>
