@@ -20,7 +20,7 @@ type TrackForm = {
 };
 
 const TrackSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().min(5),
   trackURI: s3URI,
   indexURI: z.union([s3URI, z.literal("")]).optional(),
 });
