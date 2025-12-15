@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState, useRef, useEffect } from "react";
+import { Container } from "react-bootstrap";
 import { JupyterIGVProps } from "./interfaces";
 import Header from "./components/Header";
 import IGVProvider from "./context/IGVProvider";
@@ -44,9 +45,9 @@ function App() {
   return (
     <div id="jupyter-igv-app" className="climb-jupyter jupyter-igv h-100">
       <Header />
-      <div className="jupyter-igv-content">
+      <Container fluid className="jupyter-igv-content">
         <IGViewer igvOptions={igvOptions} />
-      </div>
+      </Container>
     </div>
   );
 }

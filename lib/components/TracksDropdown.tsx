@@ -7,84 +7,120 @@ import NavDropdown from "react-bootstrap/NavDropdown";
 import { RequiredBadge, OptionalBadge } from "./base/Badges";
 import { DarkButton } from "./base/Buttons";
 import { TrackLoad, TrackType } from "igv";
+import { useHandlers } from "../context/HandlersContext";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { s3URI } from "../utils/validators";
+
+type TrackForm = {
+  name: string;
+  trackURI: string;
+  indexURI?: string;
+};
+
+const TrackSchema = z.object({
+  name: z.string().min(5),
+  trackURI: s3URI,
+  indexURI: z.union([s3URI, z.literal("")]).optional(),
+});
 
 function Track() {
   const igvContext = useIGV();
-  const [name, setName] = useState("");
-  const [url, setURL] = useState("");
-  const [indexURL, setIndexURL] = useState("");
+  const handlers = useHandlers();
   const [show, setShow] = useState(false);
-
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  const handleLoadTrack = () =>
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(TrackSchema),
+  });
+
+  const onSubmit: SubmitHandler<TrackForm> = async (data) => {
+    const [presignedTrackURL, presignedIndexURL] = await Promise.all([
+      handlers.s3PresignHandler(data.trackURI),
+      data.indexURI
+        ? handlers.s3PresignHandler(data.indexURI)
+        : Promise.resolve(undefined),
+    ]);
     igvContext.getBrowser()?.loadTrack({
-      name: name,
-      url: url,
-      ...(indexURL && { indexURL }),
-    } as unknown as TrackLoad<TrackType>);
+      name: data.name,
+      url: presignedTrackURL,
+      indexURL: presignedIndexURL,
+    } as TrackLoad<TrackType>);
+    handleClose();
+  };
 
   return (
     <>
-      <NavDropdown.Item onClick={handleShow}>URL...</NavDropdown.Item>
+      <NavDropdown.Item onClick={handleShow}>S3 URI...</NavDropdown.Item>
       <ContainerModal show={show} onHide={handleClose}>
-        <Modal.Header>
-          <Modal.Title>Add Track</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3" controlId="formTrackName">
+        <Form onSubmit={handleSubmit(onSubmit)}>
+          <Modal.Header>
+            <Modal.Title>Add Track</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form.Group className="mb-3">
               <Form.Label>
                 Track Name <RequiredBadge />
               </Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Enter track name..."
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                isInvalid={!!errors.name}
+                {...register("name")}
               />
               <Form.Text className="text-muted">
                 The display name for the track.
               </Form.Text>
+              <div className="small text-danger">{errors.name?.message}</div>
             </Form.Group>
-            <Form.Group className="mb-3" controlId="formTrackURL">
+            <Form.Group className="mb-3">
               <Form.Label>
-                Track URL <RequiredBadge />
+                Track S3 URI <RequiredBadge />
               </Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter track URL..."
-                value={url}
-                onChange={(e) => setURL(e.target.value)}
+                placeholder="Enter track URI..."
+                isInvalid={!!errors.trackURI}
+                {...register("trackURI")}
               />
               <Form.Text className="text-muted">
-                URL to the track resource, such as a file or webservice, or a
+                S3 URI to the track resource, such as a file or webservice, or a
                 data URI.
               </Form.Text>
+              <div className="small text-danger">
+                {errors.trackURI?.message}
+              </div>
             </Form.Group>
-            <Form.Group className="mb-3" controlId="formIndexURL">
+            <Form.Group className="mb-3">
               <Form.Label>
-                Index URL <OptionalBadge />
+                Index S3 URI <OptionalBadge />
               </Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter index URL..."
-                value={indexURL}
-                onChange={(e) => setIndexURL(e.target.value)}
+                placeholder="Enter index URI..."
+                isInvalid={!!errors.indexURI}
+                {...register("indexURI")}
               />
               <Form.Text className="text-muted">
-                URL to a file index, such as a BAM .bai, tabix .tbi, or tribble
-                .idx file.
+                S3 URI to a file index, such as a BAM .bai, tabix .tbi, or
+                tribble .idx file.
               </Form.Text>
+              <div className="small text-danger">
+                {errors.indexURI?.message}
+              </div>
             </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <DarkButton onClick={handleClose}>Close</DarkButton>
-          <DarkButton onClick={() => handleLoadTrack() && handleClose()}>
-            Add Track
-          </DarkButton>
-        </Modal.Footer>
+          </Modal.Body>
+          <Modal.Footer>
+            <DarkButton onClick={handleClose}>Close</DarkButton>
+            <DarkButton type="submit">Add Track</DarkButton>
+          </Modal.Footer>
+        </Form>
       </ContainerModal>
     </>
   );
