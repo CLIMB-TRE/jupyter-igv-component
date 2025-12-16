@@ -3,29 +3,31 @@ import { useRef, useEffect } from "react";
 import { Container } from "react-bootstrap";
 import { JupyterIGVProps } from "./interfaces";
 import Header from "./components/Header";
-import IGVProvider from "./context/IGVProvider";
-import { useIGV } from "./context/IGVContext";
-import { HandlersContext } from "./context/HandlersContext";
-import igv, { CreateOpt } from "igv";
+import { HandlersContext, useHandlers } from "./context/Handlers";
+import { IGVBrowserContext, useIGVBrowser } from "./context/IGVBrowser";
+import { IGVOptionsContext } from "./context/IGVOptions";
+import { usePersistedState } from "./utils/hooks";
+import igv, { Browser, CreateOpt } from "igv";
 
 import "./JupyterIGV.scss";
 
-function IGVBrowser() {
+interface IGVBrowserProps {
+  igvOptions: CreateOpt;
+}
+
+function IGVBrowser(props: IGVBrowserProps) {
+  const igvBrowser = useIGVBrowser();
   const containerRef = useRef<HTMLDivElement>(null);
-  const igvContext = useIGV();
-  const igvOptions: CreateOpt = {
-    genome: "GCA_000022165.1",
-  };
 
   useEffect(() => {
     // Create the browser on mount
     igv
-      .createBrowser(containerRef.current!, igvOptions)
-      .then((browser) => igvContext.setBrowser(browser));
+      .createBrowser(containerRef.current!, props.igvOptions)
+      .then((browser) => igvBrowser.setBrowser(browser));
 
     // Handler function to destroy the browser on unmount
     return () => {
-      const browser = igvContext.getBrowser();
+      const browser = igvBrowser.getBrowser();
       if (browser) igv.removeBrowser(browser);
     };
 
@@ -36,12 +38,37 @@ function IGVBrowser() {
 }
 
 function App() {
+  const handlers = useHandlers();
+  const browserRef = useRef<Browser | null>(null);
+  const defaultIGVOptions: CreateOpt = {
+    genome: "GCA_000022165.1",
+  };
+  const [igvOptions, setIGVOptions] = usePersistedState<CreateOpt>(
+    handlers,
+    "igvOptions",
+    defaultIGVOptions
+  );
+
+  const setBrowser = (browser: Browser) => {
+    browserRef.current = browser;
+  };
+
+  const getBrowser = () => {
+    return browserRef.current;
+  };
+
   return (
     <div id="jupyter-igv-app" className="climb-jupyter jupyter-igv h-100">
-      <Header />
-      <Container fluid className="jupyter-igv-content">
-        <IGVBrowser />
-      </Container>
+      <IGVBrowserContext.Provider
+        value={{ browserRef, setBrowser, getBrowser }}
+      >
+        <IGVOptionsContext.Provider value={setIGVOptions}>
+          <Header />
+          <Container fluid className="jupyter-igv-content">
+            <IGVBrowser igvOptions={igvOptions} />
+          </Container>
+        </IGVOptionsContext.Provider>
+      </IGVBrowserContext.Provider>
     </div>
   );
 }
@@ -59,9 +86,7 @@ function JupyterIGV(props: JupyterIGVProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <HandlersContext.Provider value={{ ...props }}>
-        <IGVProvider>
-          <App />
-        </IGVProvider>
+        <App />
       </HandlersContext.Provider>
     </QueryClientProvider>
   );
