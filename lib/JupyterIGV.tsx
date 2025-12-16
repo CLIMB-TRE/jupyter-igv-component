@@ -5,14 +5,20 @@ import { JupyterIGVProps } from "./interfaces";
 import Header from "./components/Header";
 import { HandlersContext, useHandlers } from "./context/Handlers";
 import { IGVBrowserContext, useIGVBrowser } from "./context/IGVBrowser";
-import { IGVOptionsContext } from "./context/IGVOptions";
 import { usePersistedState } from "./utils/hooks";
-import igv, { Browser, CreateOpt } from "igv";
+import igv, { Browser, CreateOpt, BrowserEvents } from "igv";
 
 import "./JupyterIGV.scss";
 
 interface IGVBrowserProps {
   igvOptions: CreateOpt;
+}
+
+enum IGVEvents {
+  TRACK_REMOVED = "trackremoved",
+  TRACK_DRAG_END = "trackdragend",
+  LOCUS_CHANGE = "locuschange",
+  TRACK_ORDER_CHANGED = "trackorderchanged",
 }
 
 function IGVBrowser(props: IGVBrowserProps) {
@@ -23,7 +29,16 @@ function IGVBrowser(props: IGVBrowserProps) {
     // Create the browser on mount
     igv
       .createBrowser(containerRef.current!, props.igvOptions)
-      .then((browser) => igvBrowser.setBrowser(browser));
+      .then((browser) => {
+        igvBrowser.setBrowser(browser);
+
+        // Event listeners for saving the browser on user interaction
+        Object.values(IGVEvents).forEach((event) =>
+          browser.on(event as BrowserEvents.EventType, () =>
+            igvBrowser.saveBrowser(browser)
+          )
+        );
+      });
 
     // Handler function to destroy the browser on unmount
     return () => {
@@ -57,17 +72,24 @@ function App() {
     return browserRef.current;
   };
 
+  const saveBrowser = (browser: Browser) => {
+    setIGVOptions(browser.toJSON() as unknown as CreateOpt);
+  };
+
   return (
     <div id="jupyter-igv-app" className="climb-jupyter jupyter-igv h-100">
       <IGVBrowserContext.Provider
-        value={{ browserRef, setBrowser, getBrowser }}
+        value={{
+          browserRef,
+          setBrowser,
+          getBrowser,
+          saveBrowser,
+        }}
       >
-        <IGVOptionsContext.Provider value={setIGVOptions}>
-          <Header />
-          <Container fluid className="jupyter-igv-content">
-            <IGVBrowser igvOptions={igvOptions} />
-          </Container>
-        </IGVOptionsContext.Provider>
+        <Header />
+        <Container fluid className="jupyter-igv-content">
+          <IGVBrowser igvOptions={igvOptions} />
+        </Container>
       </IGVBrowserContext.Provider>
     </div>
   );

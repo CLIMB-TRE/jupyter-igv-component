@@ -5,9 +5,8 @@ import { ContainerModal } from "./base/Modals";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import { RequiredBadge, OptionalBadge } from "./base/Badges";
 import { DarkButton } from "./base/Buttons";
-import { CreateOpt, TrackLoad, TrackType } from "igv";
+import { TrackLoad, TrackType } from "igv";
 import { useIGVBrowser } from "../context/IGVBrowser";
-import { useIGVOptions } from "../context/IGVOptions";
 import { useHandlers } from "../context/Handlers";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,7 +28,6 @@ const TrackSchema = z.object({
 
 function Track() {
   const igvBrowser = useIGVBrowser();
-  const setIGVOptions = useIGVOptions();
   const handlers = useHandlers();
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
@@ -64,7 +62,7 @@ function Track() {
             url: presignedTrackURL,
             indexURL: presignedIndexURL,
           } as TrackLoad<TrackType>)
-          .then(() => setIGVOptions(browser.toJSON() as unknown as CreateOpt))
+          .then(() => igvBrowser.saveBrowser(browser))
           .catch(handleError);
       })
       .catch(handleError);

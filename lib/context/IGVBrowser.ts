@@ -6,6 +6,7 @@ export const IGVBrowserContext = createContext<
       browserRef: React.MutableRefObject<Browser | null>;
       setBrowser: (browser: Browser) => void;
       getBrowser: () => Browser | null;
+      saveBrowser: (browser: Browser) => void;
     }
   | undefined
 >(undefined);

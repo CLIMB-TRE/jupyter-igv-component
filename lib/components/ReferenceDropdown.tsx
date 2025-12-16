@@ -12,9 +12,7 @@ import { ContainerModal } from "./base/Modals";
 import ErrorModal from "./ErrorModal";
 import { useIGVBrowser } from "../context/IGVBrowser";
 import { useHandlers } from "../context/Handlers";
-import { useIGVOptions } from "../context/IGVOptions";
 import { s3URI } from "../utils/validators";
-import { CreateOpt } from "igv";
 
 enum IGVReferencesMessage {
   LOADING = "Loading reference genomes...",
@@ -34,7 +32,6 @@ const ReferenceSchema = z.object({
 
 function Reference() {
   const igvBrowser = useIGVBrowser();
-  const setIGVOptions = useIGVOptions();
   const handlers = useHandlers();
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
@@ -68,7 +65,7 @@ function Reference() {
             fastaURL: presignedFastaURL,
             indexURL: presignedIndexURL,
           })
-          .then(() => setIGVOptions(browser.toJSON() as unknown as CreateOpt))
+          .then(() => igvBrowser.saveBrowser(browser))
           .catch(handleError);
       })
       .catch(handleError);
@@ -137,7 +134,6 @@ function Reference() {
 
 function IGVReferences() {
   const igvBrowser = useIGVBrowser();
-  const setIGVOptions = useIGVOptions();
   const { data, error, isLoading } = useIGVReferencesQuery();
 
   return (
@@ -154,9 +150,7 @@ function IGVReferences() {
               const browser = igvBrowser.getBrowser();
               browser
                 ?.loadGenome(genome.id!)
-                .then(() =>
-                  setIGVOptions(browser.toJSON() as unknown as CreateOpt)
-                );
+                .then(() => igvBrowser.saveBrowser(browser));
             }}
           >
             {genome.name}
