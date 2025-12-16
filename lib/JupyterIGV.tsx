@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { Container } from "react-bootstrap";
 import { JupyterIGVProps } from "./interfaces";
 import Header from "./components/Header";
@@ -10,18 +10,17 @@ import igv, { CreateOpt } from "igv";
 
 import "./JupyterIGV.scss";
 
-interface IGViewerProps {
-  igvOptions: CreateOpt;
-}
-
-function IGViewer(props: IGViewerProps) {
-  const igvContext = useIGV();
+function IGVBrowser() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const igvContext = useIGV();
+  const igvOptions: CreateOpt = {
+    genome: "GCA_000022165.1",
+  };
 
   useEffect(() => {
     // Create the browser on mount
     igv
-      .createBrowser(containerRef.current!, props.igvOptions)
+      .createBrowser(containerRef.current!, igvOptions)
       .then((browser) => igvContext.setBrowser(browser));
 
     // Handler function to destroy the browser on unmount
@@ -37,16 +36,11 @@ function IGViewer(props: IGViewerProps) {
 }
 
 function App() {
-  const defaultOptions: CreateOpt = {
-    genome: "hg38",
-  };
-  const [igvOptions] = useState<CreateOpt>(defaultOptions);
-
   return (
     <div id="jupyter-igv-app" className="climb-jupyter jupyter-igv h-100">
       <Header />
       <Container fluid className="jupyter-igv-content">
-        <IGViewer igvOptions={igvOptions} />
+        <IGVBrowser />
       </Container>
     </div>
   );
