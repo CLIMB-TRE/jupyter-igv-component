@@ -10,9 +10,11 @@ import { RequiredBadge, OptionalBadge } from "./base/Badges";
 import { DarkButton } from "./base/Buttons";
 import { ContainerModal } from "./base/Modals";
 import ErrorModal from "./ErrorModal";
-import { useIGV } from "../context/IGVContext";
-import { useHandlers } from "../context/HandlersContext";
+import { useIGVBrowser } from "../context/IGVBrowser";
+import { useHandlers } from "../context/Handlers";
+import { useIGVOptions } from "../context/IGVOptions";
 import { s3URI } from "../utils/validators";
+import { CreateOpt } from "igv";
 
 enum IGVReferencesMessage {
   LOADING = "Loading reference genomes...",
@@ -31,7 +33,8 @@ const ReferenceSchema = z.object({
 });
 
 function Reference() {
-  const igvContext = useIGV();
+  const igvBrowser = useIGVBrowser();
+  const setIGVOptions = useIGVOptions();
   const handlers = useHandlers();
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
@@ -59,12 +62,13 @@ function Reference() {
         : Promise.resolve(undefined),
     ])
       .then(([presignedFastaURL, presignedIndexURL]) => {
-        igvContext
-          .getBrowser()
+        const browser = igvBrowser.getBrowser();
+        browser
           ?.loadGenome({
             fastaURL: presignedFastaURL,
             indexURL: presignedIndexURL,
           })
+          .then(() => setIGVOptions(browser.toJSON() as unknown as CreateOpt))
           .catch(handleError);
       })
       .catch(handleError);
@@ -132,7 +136,8 @@ function Reference() {
 }
 
 function IGVReferences() {
-  const igvContext = useIGV();
+  const igvBrowser = useIGVBrowser();
+  const setIGVOptions = useIGVOptions();
   const { data, error, isLoading } = useIGVReferencesQuery();
 
   return (
@@ -145,7 +150,14 @@ function IGVReferences() {
         data.map((genome) => (
           <NavDropdown.Item
             key={genome.id}
-            onClick={() => igvContext.getBrowser()?.loadGenome(genome.id!)}
+            onClick={() => {
+              const browser = igvBrowser.getBrowser();
+              browser
+                ?.loadGenome(genome.id!)
+                .then(() =>
+                  setIGVOptions(browser.toJSON() as unknown as CreateOpt)
+                );
+            }}
           >
             {genome.name}
           </NavDropdown.Item>
