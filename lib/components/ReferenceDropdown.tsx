@@ -10,8 +10,8 @@ import { RequiredBadge, OptionalBadge } from "./base/Badges";
 import { DarkButton } from "./base/Buttons";
 import { ContainerModal } from "./base/Modals";
 import ErrorModal from "./ErrorModal";
-import { useIGV } from "../context/IGVContext";
-import { useHandlers } from "../context/HandlersContext";
+import { useIGVBrowser } from "../context/IGVBrowser";
+import { useHandlers } from "../context/Handlers";
 import { s3URI } from "../utils/validators";
 
 enum IGVReferencesMessage {
@@ -31,7 +31,7 @@ const ReferenceSchema = z.object({
 });
 
 function Reference() {
-  const igvContext = useIGV();
+  const igvBrowser = useIGVBrowser();
   const handlers = useHandlers();
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
@@ -59,12 +59,13 @@ function Reference() {
         : Promise.resolve(undefined),
     ])
       .then(([presignedFastaURL, presignedIndexURL]) => {
-        igvContext
-          .getBrowser()
+        const browser = igvBrowser.getBrowser();
+        browser
           ?.loadGenome({
             fastaURL: presignedFastaURL,
             indexURL: presignedIndexURL,
           })
+          .then(() => igvBrowser.saveBrowser(browser))
           .catch(handleError);
       })
       .catch(handleError);
@@ -132,7 +133,7 @@ function Reference() {
 }
 
 function IGVReferences() {
-  const igvContext = useIGV();
+  const igvBrowser = useIGVBrowser();
   const { data, error, isLoading } = useIGVReferencesQuery();
 
   return (
@@ -145,7 +146,12 @@ function IGVReferences() {
         data.map((genome) => (
           <NavDropdown.Item
             key={genome.id}
-            onClick={() => igvContext.getBrowser()?.loadGenome(genome.id!)}
+            onClick={() => {
+              const browser = igvBrowser.getBrowser();
+              browser
+                ?.loadGenome(genome.id!)
+                .then(() => igvBrowser.saveBrowser(browser));
+            }}
           >
             {genome.name}
           </NavDropdown.Item>

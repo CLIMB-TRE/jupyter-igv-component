@@ -1,13 +1,13 @@
 import { useState } from "react";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
-import { useIGV } from "../context/IGVContext";
 import { ContainerModal } from "./base/Modals";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import { RequiredBadge, OptionalBadge } from "./base/Badges";
 import { DarkButton } from "./base/Buttons";
 import { TrackLoad, TrackType } from "igv";
-import { useHandlers } from "../context/HandlersContext";
+import { useIGVBrowser } from "../context/IGVBrowser";
+import { useHandlers } from "../context/Handlers";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, SubmitHandler } from "react-hook-form";
@@ -27,7 +27,7 @@ const TrackSchema = z.object({
 });
 
 function Track() {
-  const igvContext = useIGV();
+  const igvBrowser = useIGVBrowser();
   const handlers = useHandlers();
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
@@ -55,13 +55,14 @@ function Track() {
         : Promise.resolve(undefined),
     ])
       .then(([presignedTrackURL, presignedIndexURL]) => {
-        igvContext
-          .getBrowser()
+        const browser = igvBrowser.getBrowser();
+        browser
           ?.loadTrack({
             name: data.name,
             url: presignedTrackURL,
             indexURL: presignedIndexURL,
           } as TrackLoad<TrackType>)
+          .then(() => igvBrowser.saveBrowser(browser))
           .catch(handleError);
       })
       .catch(handleError);
