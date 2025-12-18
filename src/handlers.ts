@@ -1,3 +1,8 @@
+export const enabled =
+  typeof import.meta.env.VITE_JUPYTER_IGV_ENABLED !== "undefined"
+    ? import.meta.env.VITE_JUPYTER_IGV_ENABLED === "true"
+    : true;
+
 export const version = "";
 
 export function getItem(key: string) {

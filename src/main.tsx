@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import JupyterIGV from "../lib/JupyterIGV.tsx";
 import {
+  enabled,
   version,
   getItem,
   setItem,
@@ -15,6 +16,7 @@ import "./main.css";
 ReactDOM.render(
   <React.StrictMode>
     <JupyterIGV
+      enabled={enabled}
       version={version}
       s3PresignHandler={s3PresignHandler}
       getItem={getItem}
