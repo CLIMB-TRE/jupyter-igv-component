@@ -6,6 +6,7 @@ import Header from "./components/Header";
 import { HandlersContext, useHandlers } from "./context/Handlers";
 import { IGVBrowserContext, useIGVBrowser } from "./context/IGVBrowser";
 import { usePersistedState } from "./utils/hooks";
+import { setTitleAsReference } from "./utils/functions";
 import igv, { Browser, CreateOpt, BrowserEvents } from "igv";
 
 import "./JupyterIGV.scss";
@@ -22,6 +23,7 @@ enum IGVEvents {
 }
 
 function IGVBrowser(props: IGVBrowserProps) {
+  const handlers = useHandlers();
   const igvBrowser = useIGVBrowser();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -30,7 +32,9 @@ function IGVBrowser(props: IGVBrowserProps) {
     igv
       .createBrowser(containerRef.current!, props.igvOptions)
       .then((browser) => {
+        // Set the browser and document title
         igvBrowser.setBrowser(browser);
+        setTitleAsReference(handlers, browser);
 
         // Event listeners for saving the browser on user interaction
         Object.values(IGVEvents).forEach((event) =>

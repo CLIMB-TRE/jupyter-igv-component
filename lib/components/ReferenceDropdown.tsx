@@ -13,6 +13,7 @@ import ErrorModal from "./ErrorModal";
 import { useIGVBrowser } from "../context/IGVBrowser";
 import { useHandlers } from "../context/Handlers";
 import { s3URI } from "../utils/validators";
+import { setTitleAsReference } from "../utils/functions";
 
 enum IGVReferencesMessage {
   LOADING = "Loading reference genomes...",
@@ -65,7 +66,10 @@ function Reference() {
             fastaURL: presignedFastaURL,
             indexURL: presignedIndexURL,
           })
-          .then(() => igvBrowser.saveBrowser(browser))
+          .then(() => {
+            igvBrowser.saveBrowser(browser);
+            setTitleAsReference(handlers, browser);
+          })
           .catch(handleError);
       })
       .catch(handleError);
@@ -133,6 +137,7 @@ function Reference() {
 }
 
 function IGVReferences() {
+  const handlers = useHandlers();
   const igvBrowser = useIGVBrowser();
   const { data, error, isLoading } = useIGVReferencesQuery();
 
@@ -148,9 +153,10 @@ function IGVReferences() {
             key={genome.id}
             onClick={() => {
               const browser = igvBrowser.getBrowser();
-              browser
-                ?.loadGenome(genome.id!)
-                .then(() => igvBrowser.saveBrowser(browser));
+              browser?.loadGenome(genome.id!).then(() => {
+                igvBrowser.saveBrowser(browser);
+                setTitleAsReference(handlers, browser);
+              });
             }}
           >
             {genome.name}
