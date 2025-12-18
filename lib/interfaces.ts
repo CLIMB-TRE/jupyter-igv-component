@@ -1,4 +1,5 @@
 export interface JupyterIGVProps {
+  enabled: boolean;
   version: string;
   s3PresignHandler: (uri: string) => Promise<string>;
   getItem?: (key: string) => unknown;

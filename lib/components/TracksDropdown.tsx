@@ -147,8 +147,14 @@ function Track() {
 }
 
 export default function TracksDropdown() {
+  const handlers = useHandlers();
+
   return (
-    <NavDropdown title="Tracks" id="tracks-dropdown">
+    <NavDropdown
+      title="Tracks"
+      id="tracks-dropdown"
+      disabled={!handlers.enabled}
+    >
       <NavDropdown.Header>Add a Track</NavDropdown.Header>
       <Track />
     </NavDropdown>

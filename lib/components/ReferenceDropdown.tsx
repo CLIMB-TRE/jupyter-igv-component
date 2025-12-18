@@ -164,8 +164,14 @@ function IGVReferences() {
 }
 
 export default function ReferenceDropdown() {
+  const handlers = useHandlers();
+
   return (
-    <NavDropdown title="Reference" id="reference-dropdown">
+    <NavDropdown
+      title="Reference"
+      id="reference-dropdown"
+      disabled={!handlers.enabled}
+    >
       <div style={{ maxHeight: "50vh", overflowY: "auto" }}>
         <NavDropdown.Header>Add a Reference</NavDropdown.Header>
         <Reference />

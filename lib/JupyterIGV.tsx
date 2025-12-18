@@ -73,7 +73,11 @@ function App() {
   };
 
   const saveBrowser = (browser: Browser) => {
-    setIGVOptions(browser.toJSON() as unknown as CreateOpt);
+    const session = browser.toJSON() as unknown as CreateOpt;
+    // @ts-expect-error The GCA_000022165.1 reference
+    // includes a locus in the ref object for some reason
+    delete session["reference"]["locus"];
+    setIGVOptions(session as unknown as CreateOpt);
   };
 
   return (
@@ -88,7 +92,7 @@ function App() {
       >
         <Header />
         <Container fluid className="jupyter-igv-content">
-          <IGVBrowser igvOptions={igvOptions} />
+          {handlers.enabled && <IGVBrowser igvOptions={igvOptions} />}
         </Container>
       </IGVBrowserContext.Provider>
     </div>
