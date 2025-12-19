@@ -3,8 +3,8 @@ import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import { ContainerModal } from "./base/Modals";
 import NavDropdown from "react-bootstrap/NavDropdown";
-import { RequiredBadge, OptionalBadge } from "./base/Badges";
 import { DarkButton } from "./base/Buttons";
+import { FormField } from "./base/Forms";
 import { TrackLoad, TrackType } from "igv";
 import { useIGVBrowser } from "../context/IGVBrowser";
 import { useHandlers } from "../context/Handlers";
@@ -26,17 +26,17 @@ const TrackSchema = z.object({
   indexURI: z.union([s3URI, z.literal("")]).optional(),
 });
 
-function Track() {
-  const igvBrowser = useIGVBrowser();
+export default function TracksDropdown() {
   const handlers = useHandlers();
-  const [show, setShow] = useState(false);
-  const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [showError, setShowError] = useState(false);
-  const handleError = (e: Error) => {
-    setError(e);
-    setShowError(true);
+  const igvBrowser = useIGVBrowser();
+
+  // Custom Track
+  const [showTrackModal, setShowTrackModal] = useState(false);
+  const [trackError, setTrackError] = useState<Error | null>(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const handleTrackError = (e: Error) => {
+    setTrackError(e);
+    setShowErrorModal(true);
   };
 
   const {
@@ -47,7 +47,7 @@ function Track() {
     resolver: zodResolver(TrackSchema),
   });
 
-  const onSubmit: SubmitHandler<TrackForm> = async (data) => {
+  const onTrackSubmit: SubmitHandler<TrackForm> = async (data) => {
     await Promise.all([
       handlers.s3PresignHandler(data.trackURI),
       data.indexURI
@@ -63,100 +63,75 @@ function Track() {
             indexURL: presignedIndexURL,
           } as TrackLoad<TrackType>)
           .then(() => igvBrowser.saveBrowser(browser))
-          .catch(handleError);
+          .catch(handleTrackError);
       })
-      .catch(handleError);
-    handleClose();
+      .catch(handleTrackError);
+    setShowTrackModal(false);
   };
 
   return (
     <>
-      <NavDropdown.Item onClick={handleShow}>S3 URI...</NavDropdown.Item>
+      <NavDropdown
+        title="Tracks"
+        id="tracks-dropdown"
+        disabled={!handlers.enabled}
+      >
+        <NavDropdown.Header>Add a Track</NavDropdown.Header>
+        <NavDropdown.Item onClick={() => setShowTrackModal(true)}>
+          S3 URI...
+        </NavDropdown.Item>
+      </NavDropdown>
       <ErrorModal
         title="Track Error"
-        error={error}
-        show={showError}
-        onHide={() => setShowError(false)}
+        error={trackError}
+        show={showErrorModal}
+        onHide={() => setShowErrorModal(false)}
       />
-      <ContainerModal show={show} onHide={handleClose}>
-        <Form onSubmit={handleSubmit(onSubmit)}>
+      <ContainerModal
+        show={showTrackModal}
+        onHide={() => setShowTrackModal(false)}
+      >
+        <Form onSubmit={handleSubmit(onTrackSubmit)}>
           <Modal.Header>
             <Modal.Title>Add Track</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <Form.Group className="mb-3">
-              <Form.Label>
-                Track Name <RequiredBadge />
-              </Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter track name..."
-                isInvalid={!!errors.name}
-                {...register("name")}
-              />
-              <Form.Text className="text-muted">
-                The display name for the track.
-              </Form.Text>
-              <div className="small text-danger">{errors.name?.message}</div>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>
-                Track S3 URI <RequiredBadge />
-              </Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter track URI..."
-                isInvalid={!!errors.trackURI}
-                {...register("trackURI")}
-              />
-              <Form.Text className="text-muted">
-                S3 URI to the track resource, such as a file or webservice, or a
-                data URI.
-              </Form.Text>
-              <div className="small text-danger">
-                {errors.trackURI?.message}
-              </div>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>
-                Index S3 URI <OptionalBadge />
-              </Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter index URI..."
-                isInvalid={!!errors.indexURI}
-                {...register("indexURI")}
-              />
-              <Form.Text className="text-muted">
-                S3 URI to a file index, such as a BAM .bai, tabix .tbi, or
-                tribble .idx file.
-              </Form.Text>
-              <div className="small text-danger">
-                {errors.indexURI?.message}
-              </div>
-            </Form.Group>
+            <FormField
+              name="name"
+              title="Track Name"
+              placeholder="Enter track name..."
+              description="The display name for the track."
+              required={true}
+              errors={errors}
+              register={register("name")}
+            />
+            <FormField
+              name="trackURI"
+              title="Track S3 URI"
+              placeholder="Enter track URI..."
+              description="S3 URI to the track resource, such as a file or webservice, or a data URI."
+              required={true}
+              errors={errors}
+              register={register("trackURI")}
+            />
+            <FormField
+              name="indexURI"
+              title="Index S3 URI"
+              placeholder="Enter index URI..."
+              description="S3 URI to a file index, such as a BAM .bai, tabix .tbi, or tribble .idx file."
+              required={false}
+              errors={errors}
+              register={register("indexURI")}
+            />
           </Modal.Body>
           <Modal.Footer>
-            <DarkButton onClick={handleClose}>Close</DarkButton>
+            <DarkButton onClick={() => setShowTrackModal(false)}>
+              Close
+            </DarkButton>
             <DarkButton type="submit">Add Track</DarkButton>
           </Modal.Footer>
         </Form>
       </ContainerModal>
     </>
-  );
-}
-
-export default function TracksDropdown() {
-  const handlers = useHandlers();
-
-  return (
-    <NavDropdown
-      title="Tracks"
-      id="tracks-dropdown"
-      disabled={!handlers.enabled}
-    >
-      <NavDropdown.Header>Add a Track</NavDropdown.Header>
-      <Track />
-    </NavDropdown>
   );
 }

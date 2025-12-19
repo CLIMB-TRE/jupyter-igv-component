@@ -6,9 +6,9 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useIGVReferencesQuery } from "../api";
-import { RequiredBadge, OptionalBadge } from "./base/Badges";
 import { DarkButton } from "./base/Buttons";
 import { ContainerModal } from "./base/Modals";
+import { FormField } from "./base/Forms";
 import ErrorModal from "./ErrorModal";
 import { useIGVBrowser } from "../context/IGVBrowser";
 import { useHandlers } from "../context/Handlers";
@@ -133,40 +133,24 @@ export default function ReferenceDropdown() {
             <Modal.Title>Add Reference</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <Form.Group className="mb-3">
-              <Form.Label>
-                Reference S3 URI <RequiredBadge />
-              </Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter reference URI..."
-                isInvalid={!!errors.referenceURI}
-                {...register("referenceURI")}
-              />
-              <Form.Text className="text-muted">
-                S3 URI to a reference file (.fa, .fasta).
-              </Form.Text>
-              <div className="small text-danger">
-                {errors.referenceURI?.message}
-              </div>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>
-                Index S3 URI <OptionalBadge />
-              </Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter index URI..."
-                isInvalid={!!errors.indexURI}
-                {...register("indexURI")}
-              />
-              <Form.Text className="text-muted">
-                S3 URI to an index file (.fai).
-              </Form.Text>
-              <div className="small text-danger">
-                {errors.indexURI?.message}
-              </div>
-            </Form.Group>
+            <FormField
+              name="referenceURI"
+              title="Reference S3 URI"
+              placeholder="Enter reference URI..."
+              description="S3 URI to a reference file (.fa, .fasta)."
+              required={true}
+              errors={errors}
+              register={register("referenceURI")}
+            />
+            <FormField
+              name="indexURI"
+              title="Index S3 URI"
+              placeholder="Enter index URI..."
+              description="S3 URI to an index file (.fai)."
+              required={false}
+              errors={errors}
+              register={register("indexURI")}
+            />
           </Modal.Body>
           <Modal.Footer>
             <DarkButton onClick={() => setShowRefModal(false)}>
