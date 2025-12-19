@@ -85,7 +85,7 @@ function App() {
   };
 
   return (
-    <div id="jupyter-igv-app" className="climb-jupyter jupyter-igv h-100">
+    <div className="climb-jupyter jupyter-igv h-100">
       <IGVBrowserContext.Provider
         value={{
           browserRef,
