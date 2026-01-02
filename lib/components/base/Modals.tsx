@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Modal, ModalProps } from "react-bootstrap";
 
 interface ContainerModalProps extends Omit<ModalProps, "container"> {
@@ -6,15 +6,19 @@ interface ContainerModalProps extends Omit<ModalProps, "container"> {
 }
 
 /**
- * Base modal component that automatically scopes modals to the app's container
+ * Base modal component that automatically scopes modals to a parent container
  * to ensure Bootstrap styles are properly applied when scoped.
  */
 export function ContainerModal({ children, ...props }: ContainerModalProps) {
-  const container = document.getElementById("jupyter-igv-app");
+  const containerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <Modal {...props} container={container} centered>
-      {children}
-    </Modal>
+    <div ref={containerRef}>
+      <Modal {...props} container={containerRef} centered>
+        {children}
+      </Modal>
+    </div>
   );
 }
+
+export default ContainerModal;
