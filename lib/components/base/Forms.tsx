@@ -1,5 +1,5 @@
 import Form from "react-bootstrap/Form";
-import { RequiredBadge, OptionalBadge } from "./Badges";
+import { OptionalBadge } from "./Badges";
 import { FieldErrors, UseFormRegisterReturn } from "react-hook-form";
 
 interface FormFieldProps {
@@ -16,7 +16,8 @@ export function FormField(props: FormFieldProps) {
   return (
     <Form.Group className="mb-3">
       <Form.Label>
-        {props.title} {props.required ? <RequiredBadge /> : <OptionalBadge />}
+        {props.title}
+        {!props.required && <OptionalBadge />}
       </Form.Label>
       <Form.Control
         type="text"
