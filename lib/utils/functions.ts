@@ -12,3 +12,7 @@ export function setTitleAsReference(
     handlers.setTitle(`IGV | ${genomeID}`);
   }
 }
+
+export function getS3URI(uri: string) {
+  return uri.startsWith("s3://") ? uri : `s3://${uri}`;
+}
