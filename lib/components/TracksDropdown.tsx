@@ -12,6 +12,7 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { s3URI } from "../utils/validators";
+import { getS3URI } from "../utils/functions";
 import ErrorModal from "./ErrorModal";
 
 type TrackForm = {
@@ -20,11 +21,34 @@ type TrackForm = {
   indexURI?: string;
 };
 
-const TrackSchema = z.object({
-  name: z.string().min(5),
-  trackURI: s3URI,
-  indexURI: z.union([s3URI, z.literal("")]).optional(),
-});
+const TrackSchema = z
+  .object({
+    name: z.string().min(3),
+    trackURI: s3URI,
+    indexURI: z.union([s3URI, z.literal("")]),
+  })
+  .refine(
+    (data) => {
+      const EXTENSIONS = [
+        ".bam",
+        ".cram",
+        ".vcf.gz",
+        ".bcf",
+        ".bed.gz",
+        ".gtf.gz",
+        ".gff.gz",
+        ".gff3.gz",
+      ];
+      return (
+        !EXTENSIONS.some((ext) => data.trackURI.endsWith(ext)) ||
+        !!data.indexURI
+      );
+    },
+    {
+      error: "An index must be provided for this file type.",
+      path: ["indexURI"],
+    }
+  );
 
 export default function TracksDropdown() {
   const handlers = useHandlers();
@@ -49,9 +73,9 @@ export default function TracksDropdown() {
 
   const onTrackSubmit: SubmitHandler<TrackForm> = async (data) => {
     await Promise.all([
-      handlers.s3PresignHandler(data.trackURI),
+      handlers.s3PresignHandler(getS3URI(data.trackURI)),
       data.indexURI
-        ? handlers.s3PresignHandler(data.indexURI)
+        ? handlers.s3PresignHandler(getS3URI(data.indexURI))
         : Promise.resolve(undefined),
     ])
       .then(([presignedTrackURL, presignedIndexURL]) => {
@@ -61,7 +85,11 @@ export default function TracksDropdown() {
             name: data.name,
             url: presignedTrackURL,
             indexURL: presignedIndexURL,
-          } as TrackLoad<TrackType>)
+            indexed: !!presignedIndexURL,
+            // These are custom properties for tracking presigned URLs
+            presignedURL: true,
+            presignedIndexURL: !!presignedIndexURL,
+          } as unknown as TrackLoad<TrackType>)
           .then(() => igvBrowser.saveBrowser(browser))
           .catch(handleTrackError);
       })
@@ -109,20 +137,26 @@ export default function TracksDropdown() {
               name="trackURI"
               title="Track S3 URI"
               placeholder="Enter track URI..."
-              description="S3 URI to the track resource, such as a file or webservice, or a data URI."
+              description="S3 URI to the track resource, such as a .bam, .cram or .vcf.gz file."
               required={true}
               errors={errors}
               register={register("trackURI")}
+              prefix="s3://"
             />
             <FormField
               name="indexURI"
               title="Index S3 URI"
               placeholder="Enter index URI..."
-              description="S3 URI to a file index, such as a BAM .bai, tabix .tbi, or tribble .idx file."
+              description="S3 URI to a file index, such as a .bai, .crai, .tbi or .csi file."
               required={false}
               errors={errors}
               register={register("indexURI")}
+              prefix="s3://"
             />
+            <small className="text-muted">
+              Note: IGV will <b>not</b> auto-detect indexes. To use an index, it{" "}
+              <b>must</b> be provided in the above field.
+            </small>
           </Modal.Body>
           <Modal.Footer>
             <DarkButton onClick={() => setShowTrackModal(false)}>

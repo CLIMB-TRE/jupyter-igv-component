@@ -13,7 +13,7 @@ import ErrorModal from "./ErrorModal";
 import { useIGVBrowser } from "../context/IGVBrowser";
 import { useHandlers } from "../context/Handlers";
 import { s3URI } from "../utils/validators";
-import { setTitleAsReference } from "../utils/functions";
+import { getS3URI, setTitleAsReference } from "../utils/functions";
 
 enum IGVReferencesMessage {
   LOADING = "Loading reference genomes...",
@@ -22,13 +22,15 @@ enum IGVReferencesMessage {
 }
 
 type ReferenceForm = {
+  name: string;
   referenceURI: string;
   indexURI?: string;
 };
 
 const ReferenceSchema = z.object({
+  name: z.string().min(3),
   referenceURI: s3URI,
-  indexURI: z.union([s3URI, z.literal("")]).optional(),
+  indexURI: z.union([s3URI, z.literal("")]),
 });
 
 export default function ReferenceDropdown() {
@@ -61,17 +63,22 @@ export default function ReferenceDropdown() {
 
   const onRefSubmit: SubmitHandler<ReferenceForm> = async (data) => {
     await Promise.all([
-      handlers.s3PresignHandler(data.referenceURI),
+      handlers.s3PresignHandler(getS3URI(data.referenceURI)),
       data.indexURI
-        ? handlers.s3PresignHandler(data.indexURI)
+        ? handlers.s3PresignHandler(getS3URI(data.indexURI))
         : Promise.resolve(undefined),
     ])
       .then(([presignedFastaURL, presignedIndexURL]) => {
         const browser = igvBrowser.getBrowser();
         browser
           ?.loadGenome({
+            id: data.name,
+            name: data.name,
             fastaURL: presignedFastaURL,
             indexURL: presignedIndexURL,
+            // @ts-expect-error These are custom properties for tracking presigned URLs
+            presignedFastaURL: true,
+            presignedIndexURL: !!presignedIndexURL,
           })
           .then(() => {
             igvBrowser.saveBrowser(browser);
@@ -134,6 +141,15 @@ export default function ReferenceDropdown() {
           </Modal.Header>
           <Modal.Body>
             <FormField
+              name="name"
+              title="Reference Name"
+              placeholder="Enter reference name..."
+              description="The display name for the reference."
+              required={true}
+              errors={errors}
+              register={register("name")}
+            />
+            <FormField
               name="referenceURI"
               title="Reference S3 URI"
               placeholder="Enter reference URI..."
@@ -141,6 +157,7 @@ export default function ReferenceDropdown() {
               required={true}
               errors={errors}
               register={register("referenceURI")}
+              prefix="s3://"
             />
             <FormField
               name="indexURI"
@@ -150,7 +167,12 @@ export default function ReferenceDropdown() {
               required={false}
               errors={errors}
               register={register("indexURI")}
+              prefix="s3://"
             />
+            <small className="text-muted">
+              Note: IGV will <b>not</b> auto-detect indexes. To use an index, it{" "}
+              <b>must</b> be provided in the above field.
+            </small>
           </Modal.Body>
           <Modal.Footer>
             <DarkButton onClick={() => setShowRefModal(false)}>
