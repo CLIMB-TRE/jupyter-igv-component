@@ -22,7 +22,11 @@ export function FormField(props: FormFieldProps) {
         {!props.required && <OptionalBadge />}
       </Form.Label>
       <InputGroup>
-        {!!props.prefix && <InputGroup.Text>{props.prefix}</InputGroup.Text>}
+        {!!props.prefix && (
+          <InputGroup.Text className="font-monospace">
+            {props.prefix}
+          </InputGroup.Text>
+        )}
         <Form.Control
           type="text"
           placeholder={props.placeholder}
