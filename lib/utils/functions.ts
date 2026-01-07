@@ -16,3 +16,34 @@ export function setTitleAsReference(
 export function getS3URI(uri: string) {
   return uri.startsWith("s3://") ? uri : `s3://${uri}`;
 }
+
+export function parseS3URL(urlStr: string): string {
+  let bucket = "";
+  let key = "";
+  const url = new URL(urlStr);
+
+  if (url.protocol === "s3:") {
+    bucket = url.hostname;
+    key = url.pathname.replace(/^\//, "");
+  } else {
+    // Virtual-hosted: bucket.s3.amazonaws.com (index 1)
+    // Path-style: s3.amazonaws.com/bucket (index 0)
+    const hostParts = url.hostname.split(".");
+    const pathParts = url.pathname.split("/").filter((p) => p);
+    const s3Index = hostParts.findIndex(
+      (p) => p === "s3" || p.startsWith("s3-")
+    );
+
+    if (s3Index > 0) {
+      // Virtual-hosted
+      bucket = hostParts.slice(0, s3Index).join(".");
+      key = url.pathname.substring(1); // Remove leading slash
+    } else {
+      // Path-style
+      bucket = pathParts[0] || "";
+      key = pathParts.slice(1).join("/");
+    }
+  }
+
+  return `s3://${bucket}/${key}`;
+}

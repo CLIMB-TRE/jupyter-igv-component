@@ -86,7 +86,10 @@ export default function TracksDropdown() {
             url: presignedTrackURL,
             indexURL: presignedIndexURL,
             indexed: !!presignedIndexURL,
-          } as TrackLoad<TrackType>)
+            // These are custom properties for tracking presigned URLs
+            presignedURL: true,
+            presignedIndexURL: !!presignedIndexURL,
+          } as unknown as TrackLoad<TrackType>)
           .then(() => igvBrowser.saveBrowser(browser))
           .catch(handleTrackError);
       })

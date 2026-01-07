@@ -76,6 +76,9 @@ export default function ReferenceDropdown() {
             name: data.name,
             fastaURL: presignedFastaURL,
             indexURL: presignedIndexURL,
+            // @ts-expect-error These are custom properties for tracking presigned URLs
+            presignedFastaURL: true,
+            presignedIndexURL: !!presignedIndexURL,
           })
           .then(() => {
             igvBrowser.saveBrowser(browser);
