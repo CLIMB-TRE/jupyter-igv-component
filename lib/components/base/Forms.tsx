@@ -1,5 +1,4 @@
 import Form from "react-bootstrap/Form";
-import { OptionalBadge } from "./Badges";
 import { FieldErrors, UseFormRegisterReturn } from "react-hook-form";
 import { InputGroup } from "react-bootstrap";
 
@@ -18,8 +17,8 @@ export function FormField(props: FormFieldProps) {
   return (
     <Form.Group className="mb-3">
       <Form.Label>
-        {props.title}
-        {!props.required && <OptionalBadge />}
+        {props.title}{" "}
+        {!!props.required && <span className="text-danger">*</span>}
       </Form.Label>
       <InputGroup>
         {!!props.prefix && (

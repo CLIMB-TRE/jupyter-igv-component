@@ -7,7 +7,12 @@ import TracksDropdown from "./TracksDropdown.tsx";
 
 export default function Header() {
   return (
-    <Navbar expand="lg" className="bg-body-tertiary border-bottom border-top">
+    <Navbar
+      style={{ backgroundColor: "#121212" }}
+      className="border-bottom"
+      variant="dark"
+      expand="lg"
+    >
       <Container fluid>
         <Navbar.Brand>Jupyter IGV</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
@@ -17,7 +22,7 @@ export default function Header() {
             <TracksDropdown />
           </Nav>
           <Nav>
-            <Nav.Link href="https://igv.org/">
+            <Nav.Link href="https://igv.org/" className="p-0">
               <IGVLogo />
             </Nav.Link>
           </Nav>
